@@ -35,8 +35,6 @@ O **FluxIO Custom Theme** adiciona capacidades completas de personalização vis
 │   │   ├── admin.css              # Estilos do painel de administração do plugin
 │   │   └── variables.css          # Variáveis CSS (:root) geradas dinamicamente com as cores e URLs
 │   │
-│   └── pics/                      # PASTA PRINCIPAL DE ARMAZENAMENTO DE UPLOADS E MÍDIAS
-│       ├── default_logo.png
 │   ├── pics/                      # TEMPLATES E ARQUIVOS PADRÕES ORIGINAIS DO TEMA
 │   │   ├── default_logo.png
 │   │   ├── default_bg_desktop.jpg
@@ -121,22 +119,59 @@ RequestReadTimeout body=60-300,minrate=500
 
 ## 5. Permissões de Pastas e Arquivos
 
-Caso haja qualquer problema de permissão ao salvar arquivos enviados pelo painel, execute no terminal do servidor:
+O plugin requer permissão de escrita na pasta `public/uploads/` para que o servidor web (PHP/Apache) consiga salvar os arquivos enviados via painel administrativo.
 
+### No Servidor Local (`/var/www/glpi`):
 ```bash
 # Ajusta o proprietário para o usuário local e o grupo do servidor web (www-data)
 sudo chown -R ti:www-data /var/www/glpi/plugins/fluxiotheme
 
-# Define permissões seguras para pastas e arquivos
+# Define permissões gerais para pastas e arquivos
 sudo chmod -R 775 /var/www/glpi/plugins/fluxiotheme
 
 # Garante permissão total de escrita para a pasta de uploads
-sudo chmod -R 777 /var/www/glpi/plugins/fluxiotheme/public/pics
+sudo chmod -R 777 /var/www/glpi/plugins/fluxiotheme/public/uploads
+sudo chown -R www-data:www-data /var/www/glpi/plugins/fluxiotheme/public/uploads
+```
+
+### No Servidor Remoto / Produção (ex: `/opt/glpi`):
+```bash
+# Permissão total na pasta de uploads para o usuário do servidor web
+chmod -R 777 /opt/glpi/plugins/fluxiotheme/public/uploads
+chown -R www-data:www-data /opt/glpi/plugins/fluxiotheme/public/uploads
+
+# (Opcional) Garantir permissão também na pasta pics
+chmod -R 777 /opt/glpi/plugins/fluxiotheme/public/pics
+chown -R www-data:www-data /opt/glpi/plugins/fluxiotheme/public/pics
 ```
 
 ---
 
-## 6. Comandos Úteis de Manutenção (CLI)
+## 6. Sistema de Upload AJAX com Barra de Progresso em Tempo Real
+
+Para evitar travamentos de tela ou incerteza durante uploads de arquivos pesados (vídeos de até 100 MB), o formulário de configuração conta com um sistema moderno de envio via **AJAX com XMLHttpRequest**:
+
+- **Barra de Progresso com Métricas:** Exibe em tempo real a porcentagem (0% a 100%) e o volume transferido (ex: `1.1 MB de 1.1 MB (100%)`).
+- **Modal de Confirmação:** Mostra animação de sucesso quando o servidor confirma o salvamento em disco.
+- **Tratamento de Exceções:** Detecta falhas de rede, limites do PHP excedidos e erros de permissão de pasta com alertas claros.
+- **Arquitetura Fallback Inteligente:** O método `getMediaPath()` verifica primeiro se existe o arquivo personalizado em `public/uploads/`; se não houver, utiliza automaticamente o arquivo padrão de fábrica em `public/pics/`.
+
+---
+
+## 7. Sistema de Logs e Diagnóstico em Tempo Real
+
+O plugin possui um canal exclusivo de telemetria e depuração para monitorar eventos de upload e configuração:
+
+- **Arquivo no Disco:** `/var/www/glpi/files/_log/fluxiotheme.log`
+- **Visualizador Integrado:** Ao final da **Aba 3 (Mural de Anúncios & Mídia)**, existe um console visual de diagnóstico que lê os últimos 30 eventos gravados no log sem precisar abrir o terminal.
+- **Acompanhar via Terminal:**
+  ```bash
+  tail -f /var/www/glpi/files/_log/fluxiotheme.log
+  ```
+
+---
+
+## 8. Comandos Úteis de Manutenção (CLI)
 
 ### Limpar o Cache do GLPI
 Sempre que editar folhas de estilo CSS ou atualizar configurações críticas:
@@ -155,14 +190,9 @@ sudo systemctl reload apache2
 sudo mysql helpdesk -e "SELECT name, value FROM glpi_configs WHERE context = 'plugin:fluxiotheme';"
 ```
 
-### Acompanhar Logs de Upload em Tempo Real
-```bash
-tail -f /var/www/glpi/files/_log/fluxiotheme.log
-```
-
 ---
 
-## 7. Como Acessar a Configuração no GLPI
+## 9. Como Acessar a Configuração no GLPI
 
 1. Acesse o GLPI como **Super-Admin**.
 2. Navegue até o menu superior: **Configurar** (`Setup`) > **Plugins**.
@@ -170,8 +200,9 @@ tail -f /var/www/glpi/files/_log/fluxiotheme.log
 4. Utilize as abas de navegação:
    - **Aba 1 (Logotipos)**: Logotipos do cabeçalho, tela de login e favicon.
    - **Aba 2 (Tela de Login)**: Wallpapers de fundo, nível de desfoque (blur), opacidade do vidro e aviso no cartão.
-   - **Aba 3 (Mural de Anúncios & Mídia)**: Ativação do segundo cartão, player de vídeo local/YouTube, comunicados de texto e atalhos rápidos.
+   - **Aba 3 (Mural de Anúncios & Mídia)**: Ativação do segundo cartão, player de vídeo local/YouTube, comunicados de texto, atalhos rápidos e console de logs.
    - **Aba 4 (Interface Interna)**: Paleta corporativa SCC, barra superior e menu lateral.
 
 ---
-*Documentação atualizada em: Outubro/2026 — FluxIO Custom Theme v1.0.0*
+*Documentação atualizada em: 27 de Outubro de 2026 — FluxIO Custom Theme v1.0.0*
+
