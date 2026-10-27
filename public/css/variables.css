@@ -1,7 +1,7 @@
 /* FluxIO Custom Theme - Generated Variables */
 :root {
-    --login-bg-desktop: url('/plugins/fluxiotheme/pics/bg_desktop_custom.jpg');
-    --login-bg-mobile: url('/plugins/fluxiotheme/pics/bg_mobile_custom.jpg');
+    --login-bg-desktop: url('/plugins/fluxiotheme/uploads/bg_desktop_custom.jpg');
+    --login-bg-mobile: url('/plugins/fluxiotheme/uploads/bg_mobile_custom.jpg');
     --logo-login: url('/plugins/fluxiotheme/pics/default_logo.png');
     --logo-sidebar: url('/plugins/fluxiotheme/pics/default_logo.png');
     --logo-sidebar-collapsed: url('/plugins/fluxiotheme/pics/default_logo_collapsed.png');

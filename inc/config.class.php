@@ -122,17 +122,47 @@ class PluginFluxiothemeConfig extends CommonGLPI {
     /**
      * Gera o arquivo public/css/variables.css dinamicamente
      */
+    /**
+     * Retorna o caminho absoluto em disco de uma mídia (prioriza uploads/, fallback pics/)
+     */
+    public static function getMediaPath(string $filename): string {
+        $upload_path = GLPI_ROOT . '/plugins/fluxiotheme/public/uploads/' . $filename;
+        if (file_exists($upload_path)) {
+            return $upload_path;
+        }
+        return GLPI_ROOT . '/plugins/fluxiotheme/public/pics/' . $filename;
+    }
+
+    /**
+     * Retorna a URL pública web de uma mídia (prioriza uploads/, fallback pics/)
+     */
+    public static function getMediaUrl(string $filename): string {
+        $upload_path = GLPI_ROOT . '/plugins/fluxiotheme/public/uploads/' . $filename;
+        if (file_exists($upload_path)) {
+            return '/plugins/fluxiotheme/uploads/' . $filename;
+        }
+        return '/plugins/fluxiotheme/pics/' . $filename;
+    }
+
+    /**
+     * Gera o arquivo public/css/variables.css dinamicamente
+     */
     public static function generateCssVariables(): bool {
         $cfg = self::getConfig();
-        $pics_url = '/plugins/fluxiotheme/pics/';
+
+        $bg_desktop_url  = self::getMediaUrl($cfg['bg_desktop']);
+        $bg_mobile_url   = self::getMediaUrl($cfg['bg_mobile']);
+        $logo_login_url  = self::getMediaUrl($cfg['logo_login']);
+        $logo_side_url   = self::getMediaUrl($cfg['logo_sidebar']);
+        $logo_side_c_url = self::getMediaUrl($cfg['logo_sidebar_collapsed']);
 
         $css = "/* FluxIO Custom Theme - Generated Variables */\n";
         $css .= ":root {\n";
-        $css .= "    --login-bg-desktop: url('{$pics_url}{$cfg['bg_desktop']}');\n";
-        $css .= "    --login-bg-mobile: url('{$pics_url}{$cfg['bg_mobile']}');\n";
-        $css .= "    --logo-login: url('{$pics_url}{$cfg['logo_login']}');\n";
-        $css .= "    --logo-sidebar: url('{$pics_url}{$cfg['logo_sidebar']}');\n";
-        $css .= "    --logo-sidebar-collapsed: url('{$pics_url}{$cfg['logo_sidebar_collapsed']}');\n";
+        $css .= "    --login-bg-desktop: url('{$bg_desktop_url}');\n";
+        $css .= "    --login-bg-mobile: url('{$bg_mobile_url}');\n";
+        $css .= "    --logo-login: url('{$logo_login_url}');\n";
+        $css .= "    --logo-sidebar: url('{$logo_side_url}');\n";
+        $css .= "    --logo-sidebar-collapsed: url('{$logo_side_c_url}');\n";
 
         // Cores de Login
         $css .= "    --login-overlay-start: {$cfg['login_overlay_start']};\n";
@@ -193,7 +223,7 @@ class PluginFluxiothemeConfig extends CommonGLPI {
     }
 
     /**
-     * Processa upload de imagem ou vídeo
+     * Processa upload de imagem ou vídeo para a pasta dedicada public/uploads/
      */
     public static function handleUpload(string $field_name, string $file_prefix, array $allowed_extensions = ['png', 'jpg', 'jpeg', 'webp', 'svg', 'ico']): ?string {
         if (!isset($_FILES[$field_name])) {
@@ -234,7 +264,7 @@ class PluginFluxiothemeConfig extends CommonGLPI {
         }
 
         $dest_filename = "{$file_prefix}_custom.{$ext}";
-        $dest_path = GLPI_ROOT . "/plugins/fluxiotheme/public/pics/{$dest_filename}";
+        $dest_path = GLPI_ROOT . "/plugins/fluxiotheme/public/uploads/{$dest_filename}";
 
         if (move_uploaded_file($file['tmp_name'], $dest_path)) {
             chmod($dest_path, 0664);
@@ -243,7 +273,7 @@ class PluginFluxiothemeConfig extends CommonGLPI {
         }
 
         error_log("[FluxIO] handleUpload '{$field_name}' FAILED move_uploaded_file to {$dest_path}");
-        Session::addMessageAfterRedirect("Falha ao salvar o arquivo em disco. Verifique as permissões da pasta pics.", false, ERROR);
+        Session::addMessageAfterRedirect("Falha ao salvar o arquivo em disco. Verifique as permissões da pasta uploads.", false, ERROR);
         return null;
     }
 
@@ -251,11 +281,13 @@ class PluginFluxiothemeConfig extends CommonGLPI {
      * Aba 1: Logotipos & Favicon
      */
     public function showLogosTab() {
+        global $CFG_GLPI;
         $cfg = self::getConfig();
         $pics_url = '/plugins/fluxiotheme/pics/';
+        $form_action = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/fluxiotheme/front/config.form.php';
 
         echo "<div class='container my-3'>";
-        echo "<form method='post' action='config.form.php' enctype='multipart/form-data'>";
+        echo "<form method='post' action='{$form_action}' enctype='multipart/form-data'>";
         echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
         echo "<input type='hidden' name='action' value='save_logos' />";
 
@@ -322,11 +354,13 @@ class PluginFluxiothemeConfig extends CommonGLPI {
      * Aba 2: Tela de Login (Visual & Vidro)
      */
     public function showLoginTab() {
+        global $CFG_GLPI;
         $cfg = self::getConfig();
         $pics_url = '/plugins/fluxiotheme/pics/';
+        $form_action = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/fluxiotheme/front/config.form.php';
 
         echo "<div class='container my-3'>";
-        echo "<form method='post' action='config.form.php' enctype='multipart/form-data'>";
+        echo "<form method='post' action='{$form_action}' enctype='multipart/form-data'>";
         echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
         echo "<input type='hidden' name='action' value='save_login' />";
 
@@ -477,11 +511,13 @@ class PluginFluxiothemeConfig extends CommonGLPI {
      * Aba 3: Mural de Anúncios & Mídia (Painel Lateral de Login com Vídeos e Links)
      */
     public function showAnnouncementsTab() {
+        global $CFG_GLPI;
         $cfg = self::getConfig();
         $pics_url = '/plugins/fluxiotheme/pics/';
+        $form_action = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/fluxiotheme/front/config.form.php';
 
         echo "<div class='container my-3'>";
-        echo "<form method='post' action='config.form.php' enctype='multipart/form-data'>";
+        echo "<form method='post' action='{$form_action}' enctype='multipart/form-data'>";
         echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
         echo "<input type='hidden' name='action' value='save_side_panel' />";
 
@@ -541,17 +577,20 @@ class PluginFluxiothemeConfig extends CommonGLPI {
         echo "<h5 class='d-flex align-items-center'><i class='ti ti-file-upload me-2 text-primary fs-2'></i>Upload Direto de Arquivo de Vídeo (Hospedado no Servidor)</h5>";
         echo "<p class='text-muted small'>Ideal para redes internas/intranets sem acesso externo. Formatos aceitos: .mp4 e .webm (Limite configurado: 100 MB).</p>";
 
-        $has_video = !empty($cfg['side_panel_video_file']) && file_exists(GLPI_ROOT . '/plugins/fluxiotheme/public/pics/' . $cfg['side_panel_video_file']);
+        $video_file = $cfg['side_panel_video_file'] ?? '';
+        $has_video = !empty($video_file) && file_exists(self::getMediaPath($video_file));
         if ($has_video) {
-            $video_file = $cfg['side_panel_video_file'];
-            $video_path = GLPI_ROOT . '/plugins/fluxiotheme/public/pics/' . $video_file;
+            $video_path = self::getMediaPath($video_file);
+            $video_url  = self::getMediaUrl($video_file);
             $video_size = self::formatBytes(filesize($video_path));
             $video_date = date('d/m/Y H:i', filemtime($video_path));
+            $is_in_uploads = str_contains($video_path, '/public/uploads/');
+            $folder_badge = $is_in_uploads ? '<span class="badge bg-success-lt ms-2"><i class="ti ti-folder me-1"></i>pasta: uploads/</span>' : '<span class="badge bg-secondary-lt ms-2"><i class="ti ti-folder me-1"></i>pasta: pics/</span>';
 
             echo "<div class='alert alert-success d-flex align-items-center mb-3 p-3' style='border-radius: 12px; background: rgba(46, 204, 113, 0.12); border: 1px solid rgba(46, 204, 113, 0.4);'>";
             echo "  <i class='ti ti-circle-check fs-1 text-success me-3'></i>";
             echo "  <div class='flex-grow-1 text-start'>";
-            echo "    <div class='fw-bold text-success fs-3'><i class='ti ti-check me-1'></i>Arquivo de Vídeo OK / Ativo no Sistema</div>";
+            echo "    <div class='fw-bold text-success fs-3'><i class='ti ti-check me-1'></i>Arquivo de Vídeo OK / Ativo no Sistema {$folder_badge}</div>";
             echo "    <div class='text-secondary small mt-1'>";
             echo "      <i class='ti ti-movie me-1'></i><strong>Arquivo:</strong> <code>{$video_file}</code> &nbsp;|&nbsp; ";
             echo "      <i class='ti ti-database me-1'></i><strong>Tamanho:</strong> {$video_size} &nbsp;|&nbsp; ";
@@ -559,7 +598,7 @@ class PluginFluxiothemeConfig extends CommonGLPI {
             echo "    </div>";
             echo "  </div>";
             echo "  <div>";
-            echo "    <a href='config.form.php?action=delete_video' class='btn btn-sm btn-outline-danger' onclick=\"return confirm('Deseja excluir o arquivo de vídeo do servidor?');\">";
+            echo "    <a href='{$form_action}?action=delete_video' class='btn btn-sm btn-outline-danger' onclick=\"return confirm('Deseja excluir o arquivo de vídeo do servidor?');\">";
             echo "      <i class='ti ti-trash me-1'></i>Excluir Vídeo";
             echo "    </a>";
             echo "  </div>";
@@ -567,7 +606,7 @@ class PluginFluxiothemeConfig extends CommonGLPI {
 
             echo "<div class='mb-3 text-center p-2 rounded' style='background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.15);'>";
             echo "  <video controls playsinline style='max-width: 100%; max-height: 220px; border-radius: 8px;'>";
-            echo "    <source src='{$pics_url}{$video_file}?v=" . time() . "' type='video/mp4'>";
+            echo "    <source src='{$video_url}?v=" . time() . "' type='video/mp4'>";
             echo "    Seu navegador não suporta este vídeo.";
             echo "  </video>";
             echo "</div>";
@@ -651,7 +690,9 @@ class PluginFluxiothemeConfig extends CommonGLPI {
      * Aba 4: Interface Interna (Sidebar & Topbar)
      */
     public function showInterfaceTab() {
+        global $CFG_GLPI;
         $cfg = self::getConfig();
+        $form_action = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/fluxiotheme/front/config.form.php';
 
         echo "<div class='container my-3'>";
 
@@ -662,19 +703,19 @@ class PluginFluxiothemeConfig extends CommonGLPI {
         echo "<p class='text-muted small'>Selecione um tema pré-configurado para preencher as cores automaticamente:</p>";
         echo "<div class='btn-list'>";
 
-        echo "<a href='config.form.php?action=apply_preset&preset=scc' class='btn btn-outline-primary'>";
+        echo "<a href='{$form_action}?action=apply_preset&preset=scc' class='btn btn-outline-primary'>";
         echo "<span class='badge me-1' style='background:#163961;'>&nbsp;</span> Azul SCC (Corporativo)";
         echo "</a>";
 
-        echo "<a href='config.form.php?action=apply_preset&preset=dark_slate' class='btn btn-outline-dark'>";
+        echo "<a href='{$form_action}?action=apply_preset&preset=dark_slate' class='btn btn-outline-dark'>";
         echo "<span class='badge me-1' style='background:#0f172a;'>&nbsp;</span> Dark Slate (Grafite Moderno)";
         echo "</a>";
 
-        echo "<a href='config.form.php?action=apply_preset&preset=emerald' class='btn btn-outline-success'>";
+        echo "<a href='{$form_action}?action=apply_preset&preset=emerald' class='btn btn-outline-success'>";
         echo "<span class='badge me-1' style='background:#064e3b;'>&nbsp;</span> Emerald Green (Verde Escuro)";
         echo "</a>";
 
-        echo "<a href='config.form.php?action=apply_preset&preset=reset_glpi' class='btn btn-outline-secondary' onclick=\"return confirm('Deseja desativar as cores customizadas e voltar à barra e menu padrão do GLPI?');\">";
+        echo "<a href='{$form_action}?action=apply_preset&preset=reset_glpi' class='btn btn-outline-secondary' onclick=\"return confirm('Deseja desativar as cores customizadas e voltar à barra e menu padrão do GLPI?');\">";
         echo "<i class='ti ti-rotate-2 me-1'></i>Padrão Nativo do GLPI";
         echo "</a>";
 
@@ -682,7 +723,7 @@ class PluginFluxiothemeConfig extends CommonGLPI {
         echo "</div>";
         echo "</div>";
 
-        echo "<form method='post' action='config.form.php'>";
+        echo "<form method='post' action='{$form_action}'>";
         echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]);
         echo "<input type='hidden' name='action' value='save_interface' />";
 
@@ -769,8 +810,9 @@ class PluginFluxiothemeConfig extends CommonGLPI {
      */
     private function renderUploadCard(string $title, string $desc, string $field, string $current_url, string $hint) {
         $filename = basename(parse_url($current_url, PHP_URL_PATH));
-        $real_path = GLPI_ROOT . '/plugins/fluxiotheme/public/pics/' . $filename;
+        $real_path = self::getMediaPath($filename);
         $file_exists = file_exists($real_path);
+        $current_url = self::getMediaUrl($filename);
         $filesize_str = $file_exists ? self::formatBytes(filesize($real_path)) : '';
         $img_info = $file_exists ? @getimagesize($real_path) : null;
         $dimensions_str = ($img_info && isset($img_info[0])) ? "{$img_info[0]}x{$img_info[1]} px" : '';
@@ -819,8 +861,10 @@ class PluginFluxiothemeConfig extends CommonGLPI {
 
         // Botão Restaurar se for customizado
         if ($is_custom) {
+            global $CFG_GLPI;
+            $form_action = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/fluxiotheme/front/config.form.php';
             echo "<div class='text-end mt-2 pt-2 border-top'>";
-            echo "  <a href='config.form.php?action=reset_default&field={$field}' class='btn btn-sm btn-outline-danger' onclick=\"return confirm('Deseja restaurar a imagem padrão para {$title}?');\">";
+            echo "  <a href='{$form_action}?action=reset_default&field={$field}' class='btn btn-sm btn-outline-danger' onclick=\"return confirm('Deseja restaurar a imagem padrão para {$title}?');\">";
             echo "    <i class='ti ti-rotate-2 me-1'></i>Restaurar Padrão Original";
             echo "  </a>";
             echo "</div>";
@@ -855,23 +899,30 @@ class PluginFluxiothemeConfig extends CommonGLPI {
         $rendered = true;
 
         echo "
-        <!-- Modal Overlay de Upload -->
-        <div id='fluxio-upload-overlay' style='display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(8px); z-index: 999999; justify-content: center; align-items: center; flex-direction: column;'>
-           <div class='card p-4 text-center shadow-lg border-0' style='max-width: 500px; width: 90%; border-radius: 24px; background: #ffffff; color: #1e293b; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);'>
+        <!-- Modal Overlay de Upload com Progresso Real -->
+        <div id='fluxio-upload-overlay' style='display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(8px); z-index: 999999; justify-content: center; align-items: center; flex-direction: column;'>
+           <div class='card p-4 text-center shadow-lg border-0' style='max-width: 520px; width: 92%; border-radius: 24px; background: #ffffff; color: #1e293b; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);'>
               <div class='mb-3'>
-                 <div class='spinner-border text-primary' style='width: 3.5rem; height: 3.5rem; border-width: 0.3em;' role='status'>
+                 <div id='fluxio-upload-spinner' class='spinner-border text-primary' style='width: 3.5rem; height: 3.5rem; border-width: 0.3em;' role='status'>
                     <span class='visually-hidden'>Carregando...</span>
+                 </div>
+                 <div id='fluxio-upload-icon-success' style='display: none;'>
+                    <i class='ti ti-circle-check text-success' style='font-size: 3.8rem;'></i>
                  </div>
               </div>
               <h3 class='mb-1 fw-bold text-dark' id='fluxio-upload-title'>Enviando Arquivo...</h3>
-              <p class='text-muted small mb-3' id='fluxio-upload-desc'>O arquivo está sendo transferido e salvo no servidor GLPI. Por favor, aguarde e <strong>não feche ou recarregue esta página</strong>.</p>
+              <p class='text-muted small mb-3' id='fluxio-upload-desc'>O arquivo está sendo transferido e salvo no servidor GLPI. Por favor, aguarde a conclusão.</p>
               
-              <div class='progress mb-2' style='height: 12px; border-radius: 6px; background: rgba(0,0,0,0.08);'>
-                 <div id='fluxio-upload-bar' class='progress-bar progress-bar-striped progress-bar-animated bg-primary' role='progressbar' style='width: 100%'></div>
+              <div class='progress mb-2' style='height: 18px; border-radius: 9px; background: rgba(0,0,0,0.08); overflow: hidden;'>
+                 <div id='fluxio-upload-bar' class='progress-bar progress-bar-striped progress-bar-animated bg-primary fw-bold' role='progressbar' style='width: 0%; font-size: 0.75rem;'>0%</div>
               </div>
 
               <div class='p-2 rounded mt-2 text-start small' style='background: #f8fafc; border: 1px solid #e2e8f0;' id='fluxio-upload-info'>
                  <i class='ti ti-upload me-1 text-primary'></i> Preparando transferência...
+              </div>
+
+              <div class='mt-3 text-center' id='fluxio-upload-actions' style='display: none;'>
+                 <button type='button' class='btn btn-sm btn-secondary' onclick=\"document.getElementById('fluxio-upload-overlay').style.display='none';\">Fechar</button>
               </div>
            </div>
         </div>
@@ -900,7 +951,6 @@ class PluginFluxiothemeConfig extends CommonGLPI {
                     infoBox.innerHTML = '<div class=\"alert alert-info py-2 px-3 mb-1\"><i class=\"ti ti-file-upload me-1\"></i><strong>Arquivo selecionado:</strong> ' + file.name + ' (' + sizeStr + ') — <span class=\"text-success fw-bold\">Pronto para salvar!</span></div>';
                 }
 
-                // Renderiza preview via FileReader se for imagem
                 if (file.type.match('image.*') && previewImg) {
                     var reader = new FileReader();
                     reader.onload = function(e) {
@@ -928,14 +978,14 @@ class PluginFluxiothemeConfig extends CommonGLPI {
                 if (sizeMb > 100) {
                     infoBox.innerHTML = '<div class=\"alert alert-danger py-2 px-3 mb-0\"><i class=\"ti ti-alert-triangle me-1\"></i><strong>Atenção:</strong> O vídeo selecionado possui <strong>' + sizeStr + '</strong>, excedendo o limite de 100 MB do servidor! O upload será rejeitado.</div>';
                 } else {
-                    infoBox.innerHTML = '<div class=\"alert alert-primary py-2 px-3 mb-0\"><i class=\"ti ti-movie me-1\"></i><strong>Vídeo selecionado:</strong> <code>' + file.name + '</code> (' + sizeStr + ')<br><span class=\"small text-muted\">Clique no botão <strong>\"Salvar Mural de Anúncios\"</strong> abaixo para iniciar o envio com barra de progresso.</span></div>';
+                    infoBox.innerHTML = '<div class=\"alert alert-primary py-2 px-3 mb-0\"><i class=\"ti ti-movie me-1\"></i><strong>Vídeo selecionado:</strong> <code>' + file.name + '</code> (' + sizeStr + ')<br><span class=\"small text-muted\">Clique no botão <strong>\"Salvar Mural de Anúncios\"</strong> abaixo para iniciar o envio com barra de progresso em tempo real.</span></div>';
                 }
             } else {
                 infoBox.style.display = 'none';
             }
         }
 
-        // Intercepta formulários de upload com overlay sem travar a conexão HTTP
+        // Upload inteligente via AJAX com monitoramento de progresso real (0% a 100%)
         (function fluxioInitForms() {
             var forms = document.querySelectorAll('form[enctype=\"multipart/form-data\"]:not([data-fluxio-bound])');
             forms.forEach(function(form) {
@@ -950,27 +1000,91 @@ class PluginFluxiothemeConfig extends CommonGLPI {
                         }
                     });
 
-                    if (uploadingFile) {
-                        var overlay = document.getElementById('fluxio-upload-overlay');
-                        var title = document.getElementById('fluxio-upload-title');
-                        var desc = document.getElementById('fluxio-upload-desc');
-                        var info = document.getElementById('fluxio-upload-info');
-
-                        if (overlay) {
-                            var isVideo = uploadingFile.name.match(/\\.(mp4|webm|mov)$/i);
-                            title.innerText = isVideo ? 'Enviando Arquivo de Vídeo...' : 'Carregando Arquivo...';
-                            desc.innerHTML = 'Enviando seu arquivo para o servidor GLPI.<br>Por favor, aguarde a conclusão.';
-                            info.innerHTML = '<i class=\"ti ti-file-text text-primary me-1\"></i><strong>Arquivo:</strong> ' + uploadingFile.name + ' (' + fluxioFormatBytes(uploadingFile.size) + ')';
-                            overlay.style.display = 'flex';
-                        }
-
-                        // Atualiza rótulo visual dos botões sem desabilitar o elemento (evita ERR_CONNECTION_ABORTED no Chrome)
-                        var submitBtns = form.querySelectorAll('button[type=\"submit\"]');
-                        submitBtns.forEach(function(btn) {
-                            btn.style.pointerEvents = 'none';
-                            btn.innerHTML = '<span class=\"spinner-border spinner-border-sm me-2\" role=\"status\" aria-hidden=\"true\"></span>Enviando...';
-                        });
+                    // Se não houver arquivo anexado, envia normalmente via form padrão
+                    if (!uploadingFile) {
+                        return true;
                     }
+
+                    // Se houver arquivo anexado, assume controle via AJAX para exibir progresso real e evitar erro de conexão
+                    e.preventDefault();
+
+                    var overlay   = document.getElementById('fluxio-upload-overlay');
+                    var title     = document.getElementById('fluxio-upload-title');
+                    var desc      = document.getElementById('fluxio-upload-desc');
+                    var bar       = document.getElementById('fluxio-upload-bar');
+                    var info      = document.getElementById('fluxio-upload-info');
+                    var actions   = document.getElementById('fluxio-upload-actions');
+                    var spinner   = document.getElementById('fluxio-upload-spinner');
+                    var successIc = document.getElementById('fluxio-upload-icon-success');
+
+                    var isVideo = uploadingFile.name.match(/\\.(mp4|webm|mov)$/i);
+                    title.innerText = isVideo ? 'Enviando Arquivo de Vídeo...' : 'Carregando Arquivo...';
+                    desc.innerHTML = 'Enviando seu arquivo para o servidor GLPI.<br>Por favor, aguarde a conclusão.';
+                    info.innerHTML = '<i class=\"ti ti-file-text text-primary me-1\"></i><strong>Arquivo:</strong> ' + uploadingFile.name + ' (' + fluxioFormatBytes(uploadingFile.size) + ')';
+                    bar.style.width = '0%';
+                    bar.className = 'progress-bar progress-bar-striped progress-bar-animated bg-primary fw-bold';
+                    bar.innerText = '0%';
+                    spinner.style.display = 'inline-block';
+                    successIc.style.display = 'none';
+                    actions.style.display = 'none';
+                    overlay.style.display = 'flex';
+
+                    var formData = new FormData(form);
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', form.action, true);
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                    // Monitora upload em tempo real
+                    xhr.upload.onprogress = function(evt) {
+                        if (evt.lengthComputable) {
+                            var pct = Math.round((evt.loaded / evt.total) * 100);
+                            bar.style.width = pct + '%';
+                            bar.innerText = pct + '%';
+                            info.innerHTML = '<i class=\"ti ti-cloud-upload text-primary me-1\"></i><strong>Enviando:</strong> ' + fluxioFormatBytes(evt.loaded) + ' de ' + fluxioFormatBytes(evt.total) + ' (' + pct + '%)';
+                            if (pct >= 100) {
+                                title.innerText = 'Salvando no Servidor...';
+                                desc.innerHTML = 'Arquivo transferido com sucesso! O servidor está gravando no disco...';
+                            }
+                        }
+                    };
+
+                    xhr.onload = function() {
+                        if (xhr.status >= 200 && xhr.status < 400) {
+                            title.innerText = 'Concluído com Sucesso!';
+                            desc.innerHTML = '<span class=\"text-success fw-bold\"><i class=\"ti ti-check me-1\"></i>Arquivo salvo com sucesso na pasta de uploads!</span>';
+                            bar.style.width = '100%';
+                            bar.className = 'progress-bar bg-success fw-bold';
+                            bar.innerText = '100% OK';
+                            spinner.style.display = 'none';
+                            successIc.style.display = 'block';
+
+                            var redirectUrl = window.location.href;
+                            try {
+                                var resp = JSON.parse(xhr.responseText);
+                                if (resp && resp.redirect) {
+                                    redirectUrl = resp.redirect;
+                                }
+                            } catch(err) {}
+
+                            setTimeout(function() {
+                                window.location.href = redirectUrl;
+                            }, 700);
+                        } else {
+                            title.innerText = 'Atenção ao Salvar';
+                            desc.innerHTML = '<span class=\"text-danger fw-bold\">O servidor retornou erro (HTTP ' + xhr.status + ').</span>';
+                            bar.className = 'progress-bar bg-danger';
+                            actions.style.display = 'block';
+                        }
+                    };
+
+                    xhr.onerror = function() {
+                        title.innerText = 'Falha no Envio';
+                        desc.innerHTML = '<span class=\"text-danger\">A conexão foi interrompida pela rede. Verifique sua conexão e tente novamente.</span>';
+                        bar.className = 'progress-bar bg-danger';
+                        actions.style.display = 'block';
+                    };
+
+                    xhr.send(formData);
                 });
             });
         })();

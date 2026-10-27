@@ -51,7 +51,13 @@ if (isset($_POST["action"]) && $_POST["action"] === "save_logos") {
     PluginFluxiothemeConfig::generateCssVariables();
 
     Session::addMessageAfterRedirect("Logotipos atualizados com sucesso!");
-    Html::redirect("config.form.php?tab=PluginFluxiothemeConfig$1");
+
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'redirect' => $CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$1"]);
+        exit;
+    }
+    Html::redirect($CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$1");
 }
 
 // 2. Ação: Salvar Estilos da Tela de Login (Visual & Vidro)
@@ -85,7 +91,13 @@ if (isset($_POST["action"]) && $_POST["action"] === "save_login") {
     PluginFluxiothemeConfig::generateCssVariables();
 
     Session::addMessageAfterRedirect("Estilos da tela de login atualizados com sucesso!");
-    Html::redirect("config.form.php?tab=PluginFluxiothemeConfig$2");
+
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'redirect' => $CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$2"]);
+        exit;
+    }
+    Html::redirect($CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$2");
 }
 
 // 3. Ação: Salvar Mural de Anúncios & Mídia
@@ -120,6 +132,12 @@ if (isset($_POST["action"]) && $_POST["action"] === "save_side_panel") {
     PluginFluxiothemeConfig::generateCssVariables();
 
     Session::addMessageAfterRedirect("Mural de Anúncios e Vídeos atualizado com sucesso!");
+
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'redirect' => $CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$3"]);
+        exit;
+    }
     Html::redirect($CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$3");
 }
 
@@ -129,7 +147,7 @@ if (isset($_GET["action"]) && $_GET["action"] === "delete_video") {
 
     $cfg = PluginFluxiothemeConfig::getConfig();
     if (!empty($cfg['side_panel_video_file'])) {
-        $file_path = GLPI_ROOT . '/plugins/fluxiotheme/public/pics/' . $cfg['side_panel_video_file'];
+        $file_path = PluginFluxiothemeConfig::getMediaPath($cfg['side_panel_video_file']);
         if (file_exists($file_path)) {
             @unlink($file_path);
         }
@@ -141,7 +159,7 @@ if (isset($_GET["action"]) && $_GET["action"] === "delete_video") {
     ]);
 
     Session::addMessageAfterRedirect("Vídeo removido com sucesso!");
-    Html::redirect("config.form.php?tab=PluginFluxiothemeConfig$3");
+    Html::redirect($CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$3");
 }
 
 // 5. Ação: Salvar Interface Interna (Sidebar e Topbar)
@@ -166,7 +184,7 @@ if (isset($_POST["action"]) && $_POST["action"] === "save_interface") {
     PluginFluxiothemeConfig::generateCssVariables();
 
     Session::addMessageAfterRedirect("Cores do menu e barra superior salvas com sucesso!");
-    Html::redirect("config.form.php?tab=PluginFluxiothemeConfig$4");
+    Html::redirect($CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$4");
 }
 
 // 6. Ação: Aplicar Presets Prontos
@@ -234,7 +252,7 @@ if (isset($_GET["action"]) && $_GET["action"] === "apply_preset" && isset($_GET[
         PluginFluxiothemeConfig::generateCssVariables();
     }
 
-    Html::redirect("config.form.php?tab=PluginFluxiothemeConfig$4");
+    Html::redirect($CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$4");
 }
 
 // 7. Ação: Restaurar Padrão de Arquivo
@@ -256,7 +274,7 @@ if (isset($_GET["action"]) && $_GET["action"] === "reset_default" && isset($_GET
             @unlink($custom_fav);
         }
         Session::addMessageAfterRedirect("Favicon restaurado para o padrão!");
-        Html::redirect("config.form.php?tab=PluginFluxiothemeConfig$1");
+        Html::redirect($CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig$1");
     }
 
     if (isset($defaults[$field])) {
@@ -266,7 +284,7 @@ if (isset($_GET["action"]) && $_GET["action"] === "reset_default" && isset($_GET
     }
 
     $tab = ($field === 'bg_desktop' || $field === 'bg_mobile') ? 2 : 1;
-    Html::redirect("config.form.php?tab=PluginFluxiothemeConfig${tab}");
+    Html::redirect($CFG_GLPI['root_doc'] . "/plugins/fluxiotheme/front/config.form.php?tab=PluginFluxiothemeConfig${tab}");
 }
 
 // Renderização da Interface

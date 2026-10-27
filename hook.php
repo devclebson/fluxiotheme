@@ -87,7 +87,7 @@ function plugin_fluxiotheme_display_login() {
 
         // Mídia / Vídeo
         if ($cfg['side_panel_media_type'] === 'upload' && !empty($cfg['side_panel_video_file'])) {
-            $video_url = $pics_url . $cfg['side_panel_video_file'];
+            $video_url = PluginFluxiothemeConfig::getMediaUrl($cfg['side_panel_video_file']);
             echo "<div class='sidepanel-video mb-3'>";
             echo "  <video controls playsinline preload='metadata' style='width: 100%; border-radius: 14px; background: #000; max-height: 230px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);'>";
             echo "    <source src='{$video_url}' type='video/mp4'>";
