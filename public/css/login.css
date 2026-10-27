@@ -1,0 +1,446 @@
+/* =========================================================
+   FLUXIO CUSTOM THEME - LOGIN PAGE STYLING
+   Glassmorphism corporativo com suporte a variáveis dinâmicas
+========================================================= */
+
+/* Esconde logos nativas do GLPI no login */
+.page-anonymous .glpi-logo,
+.navbar-brand-image,
+.login-logo,
+.navbar-brand .glpi-logo img {
+    display: none !important;
+}
+
+/* Fundo da tela inteira */
+.welcome-anonymous {
+    background: linear-gradient(var(--login-overlay-start, rgba(65, 117, 238, 0.78)), var(--login-overlay-end, rgba(15, 23, 42, 0.78))), var(--login-bg-desktop) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 100vh;
+    
+    /* Scroll Mobile */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 40px 15px !important;
+    box-sizing: border-box !important;
+}
+
+/* Logo configurada exibida acima dos cartões */
+.page-anonymous::before {
+    content: "";
+    display: block;
+    width: 320px;
+    height: 125px;
+    max-width: 90vw;
+    background: var(--logo-login) center center / contain no-repeat;
+    margin: 0 auto 15px auto !important; 
+    flex-shrink: 0;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+    transition: all 0.2s ease;
+}
+
+/* Cartão de Login Glassmorphism */
+.page-anonymous .main-content-card {
+    margin: 0 !important;
+    width: 100%;
+    max-width: 440px !important;
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(var(--card-blur, 18px));
+    -webkit-backdrop-filter: blur(var(--card-blur, 18px));
+    border-radius: var(--card-radius, 28px) !important;
+    padding: 2.5rem 2rem !important;
+    z-index: 2;
+    box-sizing: border-box;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Zerando margens extras que empurram os elementos */
+.page-anonymous .py-4,
+.page-anonymous .py-6,
+.page-anonymous .container-tight,
+.page-anonymous .card-body {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.page-anonymous .card-header, 
+#saml_header,
+.page-anonymous .container-tight > .text-center:first-child {
+    display: none !important;
+}
+
+/* Layout vertical (Padrão quando NÃO há painel lateral) */
+body:not(.has-sidepanel) .page-anonymous .row.justify-content-center {
+    display: flex;
+    flex-direction: column !important;
+    align-items: stretch !important;
+}
+
+body:not(.has-sidepanel) .page-anonymous .col-md-5,
+body:not(.has-sidepanel) .page-anonymous .col-auto {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* =========================================================
+   PAINEL LATERAL DE ANÚNCIOS (DOIS CARDS SEPARADOS LADO A LADO)
+========================================================= */
+
+body.has-sidepanel #page.page-anonymous,
+.page-anonymous:has(.fluxio-login-sidepanel) #page {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+body.has-sidepanel .page-anonymous .flex-fill,
+.page-anonymous:has(.fluxio-login-sidepanel) .flex-fill {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+body.has-sidepanel .container-tight,
+.page-anonymous:has(.fluxio-login-sidepanel) .container-tight {
+    max-width: 1060px !important;
+    width: 100% !important;
+    padding: 0 15px !important;
+    margin: 0 auto !important;
+}
+
+/* O container pai vira transparente para os 2 cartões serem independentes */
+body.has-sidepanel .main-content-card,
+.page-anonymous:has(.fluxio-login-sidepanel) .main-content-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+}
+
+body.has-sidepanel .card-body,
+.page-anonymous:has(.fluxio-login-sidepanel) .card-body,
+body.has-sidepanel form,
+.page-anonymous:has(.fluxio-login-sidepanel) form {
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Quando o painel lateral está ativo, a Logo fica ancorada diretamente ACIMA do Card de Login */
+body.has-sidepanel .page-anonymous::before,
+.page-anonymous:has(.fluxio-login-sidepanel)::before {
+    display: none !important;
+}
+
+/* Linha Flex Lado a Lado (Desktop) */
+body.has-sidepanel .row.justify-content-center,
+.page-anonymous:has(.fluxio-login-sidepanel) .row.justify-content-center {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 28px !important;
+    width: 100% !important;
+    max-width: 1000px !important;
+    margin: 0 auto !important;
+    padding-top: 115px !important;
+}
+
+/* CARTÃO 1: FORMULÁRIO DE LOGIN (LADO ESQUERDO) COM A LOGO NO TOPO */
+body.has-sidepanel .col-md-5,
+.page-anonymous:has(.fluxio-login-sidepanel) .col-md-5 {
+    position: relative !important;
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(var(--card-blur, 18px)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur, 18px)) !important;
+    border-radius: var(--card-radius, 28px) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+    padding: 2.4rem 2rem !important;
+    width: 420px !important;
+    min-width: 380px !important;
+    max-width: 430px !important;
+    flex: 0 0 420px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
+
+/* Logo Corporativa Centralizada Especificamente Acima do Card de Login */
+body.has-sidepanel .col-md-5::before,
+.page-anonymous:has(.fluxio-login-sidepanel) .col-md-5::before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 105px;
+    max-width: 90vw;
+    background: var(--logo-login) center center / contain no-repeat;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* CARTÃO 2: MURAL DE ANÚNCIOS & VÍDEO (LADO DIREITO) */
+body.has-sidepanel .col-auto,
+.page-anonymous:has(.fluxio-login-sidepanel) .col-auto {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(var(--card-blur, 18px)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur, 18px)) !important;
+    border-radius: var(--card-radius, 28px) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+    padding: 2.4rem 2rem !important;
+    width: 490px !important;
+    min-width: 440px !important;
+    max-width: 510px !important;
+    flex: 0 0 490px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    border-left: none !important;
+    box-sizing: border-box !important;
+    text-align: left !important;
+    margin: 0 !important;
+}
+
+/* Estilos internos do Painel de Anúncios */
+.fluxio-login-sidepanel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.fluxio-login-sidepanel .sidepanel-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.fluxio-login-sidepanel .sidepanel-subtitle {
+    color: #94a3b8 !important;
+    font-size: 0.85rem;
+}
+
+.fluxio-login-sidepanel .sidepanel-content a {
+    color: #38bdf8 !important;
+    text-decoration: underline;
+}
+
+.fluxio-login-sidepanel .sidepanel-content a:hover {
+    color: #7dd3fc !important;
+}
+
+/* Responsividade: no Mobile os 2 cards ficam empilhados verticalmente */
+@media (max-width: 960px) {
+    body.has-sidepanel .container-tight,
+    .page-anonymous:has(.fluxio-login-sidepanel) .container-tight {
+        max-width: 480px !important;
+    }
+
+    body.has-sidepanel .row.justify-content-center,
+    .page-anonymous:has(.fluxio-login-sidepanel) .row.justify-content-center {
+        flex-direction: column !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 22px !important;
+        max-width: 100% !important;
+    }
+
+    body.has-sidepanel .col-md-5,
+    body.has-sidepanel .col-auto,
+    .page-anonymous:has(.fluxio-login-sidepanel) .col-md-5,
+    .page-anonymous:has(.fluxio-login-sidepanel) .col-auto {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 440px !important;
+        flex: 1 1 auto !important;
+        padding: 2rem 1.5rem !important;
+    }
+}
+
+/* Campos de Formulário e Botões */
+.page-anonymous .form-control,
+.page-anonymous .btn-primary,
+.page-anonymous #saml_buttons button,
+.page-anonymous .btn-outline-secondary {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.page-anonymous .form-control {
+    background: var(--input-bg) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 14px !important;
+    color: #ffffff !important;
+    height: 50px;
+    transition: all 0.2s ease;
+}
+
+.page-anonymous .form-control:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 14px rgba(37, 99, 235, 0.35) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.page-anonymous .btn-primary {
+    height: 52px;
+    border-radius: 14px !important;
+    margin-bottom: 1rem !important;
+    border: none !important;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--login-btn-start, var(--primary-color)), var(--login-btn-end, #0ea5e9)) !important;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    transition: all .2s ease;
+}
+
+.page-anonymous .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.55);
+}
+
+/* Botão FAQ */
+.page-anonymous .btn-outline-secondary {
+    height: 48px;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    color: white !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    margin-top: 1.5rem !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.page-anonymous .btn-outline-secondary:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Botão Google SAML */
+.page-anonymous .plugin_glpisaml_login,
+.page-anonymous #saml_buttons,
+.page-anonymous #saml_buttons .col-sm-6 {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
+.page-anonymous #saml_buttons button {
+    all: unset !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 52px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 14px !important;
+    color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    margin-top: 20px !important;
+    transition: all 0.2s ease;
+}
+
+.page-anonymous #saml_buttons button:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-1px);
+}
+
+.page-anonymous #saml_buttons button div.d-flex {
+    flex-direction: row !important; 
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+}
+
+.page-anonymous #saml_buttons button i.fa-google {
+    font-size: 1.2rem !important;
+    margin: 0 !important;
+}
+
+/* Textos e Rótulos */
+.page-anonymous label {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.page-anonymous .form-check-label {
+    color: #cbd5e1 !important;
+}
+
+.page-anonymous .copyright, .page-anonymous .text-muted {
+    color: #94a3b8 !important;
+    margin-top: 15px !important;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.page-anonymous .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* =========================================================
+   RESPONSIVIDADE (MOBILE / TELAS PEQUENAS)
+========================================================= */
+
+@media (max-width: 768px) {
+    .welcome-anonymous {
+        background-image: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.88)), var(--login-bg-mobile) !important;
+        justify-content: flex-start !important;
+        padding-top: 40px !important;
+    }
+
+    .page-anonymous .main-content-card {
+        max-width: 95% !important;
+        padding: 2rem 1.5rem !important;
+    }
+
+    .page-anonymous::before {
+        width: 180px;
+        height: 70px;
+    }
+}
+
+@media (max-height: 600px) {
+    .welcome-anonymous {
+        justify-content: flex-start !important;
+        padding-top: 20px !important;
+    }
+}

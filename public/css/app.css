@@ -1,0 +1,20 @@
+/* =========================================================
+   FLUXIO CUSTOM THEME - INTERNAL APP STYLING
+   Sidebar, topbar e logos do painel administrativo
+========================================================= */
+
+/* Logotipo da barra lateral expandida */
+.page .glpi-logo {
+    background: var(--logo-sidebar) center center / contain no-repeat !important;
+    width: 190px !important;
+    height: 80px !important;
+    margin: auto !important;
+}
+
+/* Logotipo da barra lateral quando recolhida (mini-sidebar) */
+body.navbar-collapsed .navbar-brand .glpi-logo,
+.navbar-collapsed .glpi-logo {
+    background: var(--logo-sidebar-collapsed) center center / contain no-repeat !important;
+    width: 70px !important;
+    height: 70px !important;
+}
