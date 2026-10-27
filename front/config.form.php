@@ -105,8 +105,13 @@ if (isset($_POST["action"]) && $_POST["action"] === "save_side_panel") {
     Session::checkRight("config", UPDATE);
     Session::checkCSRF($_POST);
 
-    error_log("[FluxIO] save_side_panel POST: " . json_encode($_POST));
-    error_log("[FluxIO] save_side_panel FILES: " . json_encode($_FILES));
+    $files_summary = [];
+    if (!empty($_FILES)) {
+        foreach ($_FILES as $k => $f) {
+            $files_summary[$k] = "name={$f['name']}, size={$f['size']}, error={$f['error']}";
+        }
+    }
+    PluginFluxiothemeConfig::log("POST save_side_panel recebido. Arquivos: " . json_encode($files_summary));
 
     $updates = [
         'side_panel_enabled'      => isset($_POST['side_panel_enabled']) ? '1' : '0',

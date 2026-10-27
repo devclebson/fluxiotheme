@@ -155,6 +155,11 @@ sudo systemctl reload apache2
 sudo mysql helpdesk -e "SELECT name, value FROM glpi_configs WHERE context = 'plugin:fluxiotheme';"
 ```
 
+### Acompanhar Logs de Upload em Tempo Real
+```bash
+tail -f /var/www/glpi/files/_log/fluxiotheme.log
+```
+
 ---
 
 ## 7. Como Acessar a Configuração no GLPI

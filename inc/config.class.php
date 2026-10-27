@@ -123,6 +123,34 @@ class PluginFluxiothemeConfig extends CommonGLPI {
      * Gera o arquivo public/css/variables.css dinamicamente
      */
     /**
+     * Grava log dedicado do plugin em files/_log/fluxiotheme.log
+     */
+    public static function log(string $message): void {
+        $log_file = GLPI_ROOT . '/files/_log/fluxiotheme.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
+        $entry = "[{$timestamp}] [{$ip}] {$message}" . PHP_EOL;
+        @file_put_contents($log_file, $entry, FILE_APPEND | LOCK_EX);
+        error_log("[FluxIO] {$message}");
+    }
+
+    /**
+     * Retorna as últimas linhas do arquivo de log
+     */
+    public static function getLastLogs(int $lines = 25): string {
+        $log_file = GLPI_ROOT . '/files/_log/fluxiotheme.log';
+        if (!file_exists($log_file)) {
+            return "Nenhum evento registrado no arquivo de log ainda.";
+        }
+        $content = file($log_file);
+        if ($content === false || empty($content)) {
+            return "Arquivo de log vazio.";
+        }
+        $slice = array_slice($content, -$lines);
+        return htmlspecialchars(implode("", $slice), ENT_QUOTES, 'UTF-8');
+    }
+
+    /**
      * Retorna o caminho absoluto em disco de uma mídia (prioriza uploads/, fallback pics/)
      */
     public static function getMediaPath(string $filename): string {
@@ -227,15 +255,15 @@ class PluginFluxiothemeConfig extends CommonGLPI {
      */
     public static function handleUpload(string $field_name, string $file_prefix, array $allowed_extensions = ['png', 'jpg', 'jpeg', 'webp', 'svg', 'ico']): ?string {
         if (!isset($_FILES[$field_name])) {
-            error_log("[FluxIO] handleUpload: \$_FILES['{$field_name}'] is NOT set.");
+            self::log("handleUpload: \$_FILES['{$field_name}'] não foi enviado na requisição.");
             return null;
         }
 
         $file = $_FILES[$field_name];
-        error_log("[FluxIO] handleUpload '{$field_name}': name={$file['name']}, size={$file['size']}, error={$file['error']}, tmp_name={$file['tmp_name']}");
+        self::log("handleUpload '{$field_name}': nome='{$file['name']}', tamanho={$file['size']} bytes, erro={$file['error']}, tmp='{$file['tmp_name']}'");
 
         if ($file['error'] === UPLOAD_ERR_NO_FILE) {
-            error_log("[FluxIO] handleUpload '{$field_name}': UPLOAD_ERR_NO_FILE (no file uploaded)");
+            self::log("handleUpload '{$field_name}': nenhum arquivo anexado (UPLOAD_ERR_NO_FILE).");
             return null;
         }
 
@@ -249,7 +277,7 @@ class PluginFluxiothemeConfig extends CommonGLPI {
                 UPLOAD_ERR_EXTENSION  => "Uma extensão PHP bloqueou o upload do arquivo."
             ];
             $msg = $err_map[$file['error']] ?? "Erro durante o upload (Código PHP: {$file['error']}).";
-            error_log("[FluxIO] handleUpload '{$field_name}' ERROR: {$msg}");
+            self::log("handleUpload '{$field_name}' FALHA: {$msg}");
             Session::addMessageAfterRedirect($msg, false, ERROR);
             return null;
         }
@@ -258,7 +286,7 @@ class PluginFluxiothemeConfig extends CommonGLPI {
 
         if (!in_array($ext, $allowed_extensions, true)) {
             $allowed_str = strtoupper(implode(', ', $allowed_extensions));
-            error_log("[FluxIO] handleUpload '{$field_name}' invalid extension: .{$ext}");
+            self::log("handleUpload '{$field_name}' extensão rejeitada: .{$ext}. Permitidas: {$allowed_str}");
             Session::addMessageAfterRedirect("Extensão inválida (.{$ext}). Use apenas: {$allowed_str}.", false, ERROR);
             return null;
         }
@@ -268,11 +296,11 @@ class PluginFluxiothemeConfig extends CommonGLPI {
 
         if (move_uploaded_file($file['tmp_name'], $dest_path)) {
             chmod($dest_path, 0664);
-            error_log("[FluxIO] handleUpload '{$field_name}' SUCCESS -> saved to {$dest_path}");
+            self::log("handleUpload '{$field_name}' SUCESSO! Gravado em: {$dest_path}");
             return $dest_filename;
         }
 
-        error_log("[FluxIO] handleUpload '{$field_name}' FAILED move_uploaded_file to {$dest_path}");
+        self::log("handleUpload '{$field_name}' ERRO CRÍTICO no move_uploaded_file para {$dest_path}. Verifique permissões.");
         Session::addMessageAfterRedirect("Falha ao salvar o arquivo em disco. Verifique as permissões da pasta uploads.", false, ERROR);
         return null;
     }
@@ -676,6 +704,18 @@ class PluginFluxiothemeConfig extends CommonGLPI {
         echo "</form>";
         self::renderUploadOverlayAndScripts();
 
+        // Bloco de Diagnóstico e Logs em Tempo Real
+        $logs = self::getLastLogs(20);
+        echo "<div class='card mb-4 border-0 shadow-sm' style='background: #0f172a; color: #f8fafc; border-radius: 14px;'>";
+        echo "  <div class='card-header d-flex justify-content-between align-items-center' style='border-bottom: 1px solid rgba(255,255,255,0.1);'>";
+        echo "    <h4 class='card-title text-white m-0'><i class='ti ti-terminal-2 text-info me-2'></i>Logs de Diagnóstico de Upload (Tempo Real)</h4>";
+        echo "    <span class='badge bg-info-lt'>files/_log/fluxiotheme.log</span>";
+        echo "  </div>";
+        echo "  <div class='card-body p-3'>";
+        echo "    <pre style='background: #020617; color: #38bdf8; font-family: monospace; font-size: 0.8rem; padding: 12px; border-radius: 8px; max-height: 180px; overflow-y: auto; margin: 0; white-space: pre-wrap;'>{$logs}</pre>";
+        echo "  </div>";
+        echo "</div>";
+
         echo "<script>
         function toggleMediaType(type) {
             document.getElementById('block-video-upload').style.display = (type === 'upload') ? 'block' : 'none';
@@ -1029,9 +1069,10 @@ class PluginFluxiothemeConfig extends CommonGLPI {
                     actions.style.display = 'none';
                     overlay.style.display = 'flex';
 
+                    var targetUrl = form.getAttribute('action') || (window.location.pathname + window.location.search);
                     var formData = new FormData(form);
                     var xhr = new XMLHttpRequest();
-                    xhr.open('POST', form.action, true);
+                    xhr.open('POST', targetUrl, true);
                     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
                     // Monitora upload em tempo real
@@ -1069,9 +1110,14 @@ class PluginFluxiothemeConfig extends CommonGLPI {
                             setTimeout(function() {
                                 window.location.href = redirectUrl;
                             }, 700);
+                        } else if (xhr.status === 404) {
+                            title.innerText = 'Rota Não Encontrada (404)';
+                            desc.innerHTML = '<span class=\"text-danger fw-bold\">O endereço (' + targetUrl + ') retornou 404. Verifique o caminho do formulário.</span>';
+                            bar.className = 'progress-bar bg-danger';
+                            actions.style.display = 'block';
                         } else {
                             title.innerText = 'Atenção ao Salvar';
-                            desc.innerHTML = '<span class=\"text-danger fw-bold\">O servidor retornou erro (HTTP ' + xhr.status + ').</span>';
+                            desc.innerHTML = '<span class=\"text-danger fw-bold\">O servidor retornou status HTTP ' + xhr.status + '.</span>';
                             bar.className = 'progress-bar bg-danger';
                             actions.style.display = 'block';
                         }
@@ -1079,7 +1125,7 @@ class PluginFluxiothemeConfig extends CommonGLPI {
 
                     xhr.onerror = function() {
                         title.innerText = 'Falha no Envio';
-                        desc.innerHTML = '<span class=\"text-danger\">A conexão foi interrompida pela rede. Verifique sua conexão e tente novamente.</span>';
+                        desc.innerHTML = '<span class=\"text-danger fw-bold\"><i class=\"ti ti-alert-triangle me-1\"></i>A conexão foi interrompida pela rede.</span><br><small class=\"text-muted\">Verifique a estabilidade da internet ou utilize o envio manual via SFTP/SSH para <code>public/uploads/</code>.</small>';
                         bar.className = 'progress-bar bg-danger';
                         actions.style.display = 'block';
                     };
